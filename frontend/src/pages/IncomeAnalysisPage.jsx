@@ -11,6 +11,7 @@ import { useI18n } from "../context/I18nContext";
 import IncomeForm from "../components/income-analysis/IncomeForm";
 import ResultSummary from "../components/income-analysis/ResultSummary";
 import AIInsights from "../components/income-analysis/AIInsights";
+import IncomeComparisonSection from "../components/income-analysis/IncomeComparisonSection";
 import {
   calcSavings,
   calcSavingsRate,
@@ -81,6 +82,17 @@ export default function IncomeAnalysisPage() {
         <>
           <div className="section-divider" aria-hidden="true" />
           <AIInsights formData={formData} />
+        </>
+      )}
+
+      {/* ══ 4. INCOME COMPARISON SECTION ═════════════════════ */}
+      {results && formData && (
+        <>
+          <div className="section-divider" aria-hidden="true" />
+          <IncomeComparisonSection
+            userSalary={formData.monthlyIncome}
+            userCountry={formData.country}
+          />
         </>
       )}
     </>

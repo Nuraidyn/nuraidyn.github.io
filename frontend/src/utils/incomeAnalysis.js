@@ -169,3 +169,49 @@ export function getActionPlan(income, expenses, savingsRate, experienceYears) {
 
   return { month3: plan3, month6: plan6, month12: plan12 };
 }
+
+// ── Income Comparison calculations ──────────────────────────────────────────
+
+/** Nominal salary gap vs country average */
+export function calcSalaryGap(userSalary, countryAvg) {
+  return userSalary - countryAvg;
+}
+
+/** Salary gap as percentage of country average */
+export function calcSalaryGapPercent(userSalary, countryAvg) {
+  if (countryAvg <= 0) return 0;
+  return ((userSalary - countryAvg) / countryAvg) * 100;
+}
+
+/**
+ * Cumulative inflation over N years ending at currentYear.
+ * yearlyInflation: { [year]: pct }  e.g. { 2022: 8.0, 2023: 4.1 }
+ */
+export function calcCumulativeInflation(yearlyInflation, years) {
+  const currentYear = new Date().getFullYear();
+  let cumulative = 1;
+  for (let y = currentYear - years; y < currentYear; y++) {
+    const rate = (yearlyInflation[y] ?? 3) / 100; // fallback 3%
+    cumulative *= (1 + rate);
+  }
+  return cumulative - 1; // e.g. 0.15 = 15%
+}
+
+/** Inflation-adjusted (real) income */
+export function calcRealIncome(nominalIncome, cumulativeInflation) {
+  return nominalIncome / (1 + cumulativeInflation);
+}
+
+/**
+ * Rank countries by real earning potential:
+ * score = avgMonthlyIncome / (1 + cumulativeInflation)
+ */
+export function rankCountriesByRealEarnings(countriesData, years) {
+  return Object.entries(countriesData)
+    .map(([code, d]) => {
+      const cumInfl = calcCumulativeInflation(d.yearlyInflation, years);
+      const realIncome = calcRealIncome(d.avgMonthlyIncome, cumInfl);
+      return { code, name: d.name, realIncome, cumInfl, avgMonthlyIncome: d.avgMonthlyIncome };
+    })
+    .sort((a, b) => b.realIncome - a.realIncome);
+}
