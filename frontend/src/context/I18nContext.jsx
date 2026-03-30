@@ -356,6 +356,30 @@ const DICTIONARY = {
     "incomeAnalysis.errorExpenses": "Monthly expenses must be 0 or more.",
     "incomeAnalysis.emptyState": "Fill in your profile above and click Analyze to see your results.",
     "incomeAnalysis.perMonth": "/ month",
+    "ai.incomeTip.deficit1": "Prioritize cutting non-essential expenses before seeking more income.",
+    "ai.incomeTip.deficit2": "Consider freelance or part-time work to bridge the monthly gap.",
+    "ai.incomeTip.deficit3": "Build a 1-month emergency buffer as the first financial milestone.",
+    "ai.incomeTip.stable1": "Aim to increase income by 10-15% through skill development or a new role.",
+    "ai.incomeTip.stable2": "Negotiate a salary review — present market data for your profession.",
+    "ai.incomeTip.stable3": "Explore side income streams aligned with your existing expertise.",
+    "ai.incomeTip.strong1": "Your savings rate is solid. Consider investing the surplus to grow wealth.",
+    "ai.incomeTip.strong2": "Explore tax-advantaged accounts (pension, ISA/IRA) to compound gains.",
+    "ai.incomeTip.strong3": "Evaluate passive income opportunities: dividends, real estate, or bonds.",
+    "ai.expenseTip.deficit1": "Apply the 50/30/20 rule: 50% needs, 30% wants, 20% savings.",
+    "ai.expenseTip.deficit2": "Audit subscriptions and recurring services — cancel unused ones.",
+    "ai.expenseTip.deficit3": "Cook at home more often; food spending is often the fastest to cut.",
+    "ai.expenseTip.stable1": "Track spending in 3 categories: fixed, variable, and discretionary.",
+    "ai.expenseTip.stable2": "Reduce discretionary spending by 10% this month as a baseline test.",
+    "ai.expenseTip.stable3": "Batch major purchases to leverage discounts and reduce impulse buying.",
+    "ai.expenseTip.strong1": "Expenses look healthy. Focus optimization on high-return investments.",
+    "ai.expenseTip.strong2": "Review insurance and utilities annually — renegotiate or switch providers.",
+    "ai.expenseTip.strong3": "Automate transfers to savings on payday to maintain discipline.",
+    "ai.plan3.deficit": "Reduce monthly expenses by at least the deficit amount to break even.",
+    "ai.plan3.surplus": "Build a 1-month emergency fund: save {{savings}} consistently.",
+    "ai.plan6.low": "Reach a 20% savings rate (target: {{target}}/month) and identify one income growth action.",
+    "ai.plan6.high": "Reach a 3-month emergency reserve of ~{{reserve}} and start a recurring investment.",
+    "ai.plan12.experienced": "Target a 10-15% income increase through promotion, job change, or freelance work.",
+    "ai.plan12.junior": "Complete one relevant certification or course to accelerate career progression.",
     "comparison.title": "Compare Income Across Countries",
     "comparison.subtitle": "Benchmark your salary against country averages and inflation-adjusted values.",
     "comparison.yourSalaryVsAvg": "Your Salary vs Local Average",
@@ -725,6 +749,30 @@ const DICTIONARY = {
     "incomeAnalysis.errorExpenses": "Ежемесячные расходы должны быть 0 или более.",
     "incomeAnalysis.emptyState": "Заполните профиль выше и нажмите «Анализировать».",
     "incomeAnalysis.perMonth": "/ мес.",
+    "ai.incomeTip.deficit1": "Сначала сократите необязательные расходы, прежде чем искать дополнительный доход.",
+    "ai.incomeTip.deficit2": "Рассмотрите фриланс или подработку, чтобы закрыть ежемесячный дефицит.",
+    "ai.incomeTip.deficit3": "Накопите резерв на 1 месяц — это первый финансовый ориентир.",
+    "ai.incomeTip.stable1": "Стремитесь увеличить доход на 10-15% через развитие навыков или смену работы.",
+    "ai.incomeTip.stable2": "Запросите пересмотр зарплаты — подготовьте рыночные данные по вашей профессии.",
+    "ai.incomeTip.stable3": "Изучите дополнительные источники дохода в рамках вашей экспертизы.",
+    "ai.incomeTip.strong1": "Норма сбережений отличная. Подумайте об инвестировании излишков.",
+    "ai.incomeTip.strong2": "Изучите налоговые льготы (пенсионные счета, ИИС) для накопления.",
+    "ai.incomeTip.strong3": "Оцените пассивный доход: дивиденды, недвижимость или облигации.",
+    "ai.expenseTip.deficit1": "Применяйте правило 50/30/20: 50% нужды, 30% желания, 20% сбережения.",
+    "ai.expenseTip.deficit2": "Проверьте подписки и регулярные платежи — отмените неиспользуемые.",
+    "ai.expenseTip.deficit3": "Готовьте дома чаще — расходы на еду сокращаются быстрее всего.",
+    "ai.expenseTip.stable1": "Отслеживайте расходы в 3 категориях: фиксированные, переменные, дискреционные.",
+    "ai.expenseTip.stable2": "Сократите дискреционные расходы на 10% в этом месяце как базовый тест.",
+    "ai.expenseTip.stable3": "Планируйте крупные покупки заранее — используйте скидки и избегайте импульсивных трат.",
+    "ai.expenseTip.strong1": "Расходы здоровые. Направьте оптимизацию на высокодоходные инвестиции.",
+    "ai.expenseTip.strong2": "Пересматривайте страховки и коммунальные услуги ежегодно — переговаривайтесь или меняйте провайдера.",
+    "ai.expenseTip.strong3": "Автоматизируйте переводы в сбережения в день зарплаты.",
+    "ai.plan3.deficit": "Сократите ежемесячные расходы хотя бы на сумму дефицита, чтобы выйти в ноль.",
+    "ai.plan3.surplus": "Создайте резервный фонд на 1 месяц: откладывайте {{savings}} ежемесячно.",
+    "ai.plan6.low": "Достигните нормы сбережений 20% (цель: {{target}}/мес.) и определите один способ роста дохода.",
+    "ai.plan6.high": "Сформируйте резерв на 3 месяца (~{{reserve}}) и запустите регулярные инвестиции.",
+    "ai.plan12.experienced": "Нацельтесь на рост дохода 10-15% через повышение, смену работы или фриланс.",
+    "ai.plan12.junior": "Пройдите одну профильную сертификацию или курс для ускорения карьеры.",
     "comparison.title": "Сравнение доходов по странам",
     "comparison.subtitle": "Сравните свою зарплату со средними значениями по странам с учётом инфляции.",
     "comparison.yourSalaryVsAvg": "Ваша зарплата vs среднее",
@@ -1094,6 +1142,30 @@ const DICTIONARY = {
     "incomeAnalysis.errorExpenses": "Ай сайынғы шығыс 0 немесе одан көп болуы керек.",
     "incomeAnalysis.emptyState": "Профильді толтырып, «Талдау» батырмасын басыңыз.",
     "incomeAnalysis.perMonth": "/ ай",
+    "ai.incomeTip.deficit1": "Қосымша табыс іздемес бұрын, қажетсіз шығындарды қысқартыңыз.",
+    "ai.incomeTip.deficit2": "Айлық тапшылықты жабу үшін фриланс немесе қосымша жұмысты қарастырыңыз.",
+    "ai.incomeTip.deficit3": "1 айлық қор жасаңыз — бұл бірінші қаржылық мақсат.",
+    "ai.incomeTip.stable1": "Дағдыларды дамыту немесе жаңа жұмыс арқылы табысты 10-15% арттырыңыз.",
+    "ai.incomeTip.stable2": "Жалақыны қайта қарауды сұраңыз — мамандығыңыз бойынша нарық деректерін дайындаңыз.",
+    "ai.incomeTip.stable3": "Өз тәжірибеңізге сәйкес қосымша табыс көздерін зерттеңіз.",
+    "ai.incomeTip.strong1": "Жинақтау деңгейі жақсы. Артық қаражатты инвестициялауды қарастырыңыз.",
+    "ai.incomeTip.strong2": "Салықтық жеңілдіктерді (зейнетақы шоттары) пайдаланыңыз.",
+    "ai.incomeTip.strong3": "Пассивті табыс мүмкіндіктерін бағалаңыз: дивидендтер, жылжымайтын мүлік.",
+    "ai.expenseTip.deficit1": "50/30/20 ережесін қолданыңыз: 50% қажеттіліктер, 30% тілектер, 20% жинақ.",
+    "ai.expenseTip.deficit2": "Жазылымдар мен тұрақты төлемдерді тексеріңіз — пайдаланылмайтындарын болдырмаңыз.",
+    "ai.expenseTip.deficit3": "Үйде жиі тамақ дайындаңыз — тамаққа кететін шығынды тезірек қысқартуға болады.",
+    "ai.expenseTip.stable1": "Шығындарды 3 санатта бақылаңыз: тұрақты, өзгермелі, дискреционды.",
+    "ai.expenseTip.stable2": "Осы айда дискреционды шығындарды 10% қысқартыңыз.",
+    "ai.expenseTip.stable3": "Ірі сатып алуларды алдын ала жоспарлаңыз — жеңілдіктерді пайдаланыңыз.",
+    "ai.expenseTip.strong1": "Шығындар қалыпты. Жоғары табысты инвестицияларға бағытталыңыз.",
+    "ai.expenseTip.strong2": "Сақтандыру мен коммуналдық қызметтерді жыл сайын қайта қараңыз.",
+    "ai.expenseTip.strong3": "Жалақы күні жинаққа автоматты аударымдар орнатыңыз.",
+    "ai.plan3.deficit": "Тепе-теңдікке жету үшін ай сайынғы шығындарды кем дегенде тапшылық сомасына қысқартыңыз.",
+    "ai.plan3.surplus": "1 айлық резервтік қор жасаңыз: {{savings}} тұрақты жинаңыз.",
+    "ai.plan6.low": "20% жинақтау деңгейіне жетіңіз (мақсат: {{target}}/ай) және табыс өсіру жолын анықтаңыз.",
+    "ai.plan6.high": "3 айлық резерв (~{{reserve}}) жасаңыз және тұрақты инвестициялауды бастаңыз.",
+    "ai.plan12.experienced": "Жоғарылату, жұмыс ауыстыру немесе фриланс арқылы табысты 10-15% арттырыңыз.",
+    "ai.plan12.junior": "Мансапты тездету үшін бір маңызды сертификат немесе курс алыңыз.",
     "comparison.title": "Елдер бойынша табысты салыстыру",
     "comparison.subtitle": "Жалақыңызды елдік орташа және инфляцияны ескерген мәндермен салыстырыңыз.",
     "comparison.yourSalaryVsAvg": "Жалақыңыз vs орташа",
@@ -1285,7 +1357,7 @@ function getInitialLanguage() {
 }
 
 function interpolate(template, variables = {}) {
-  return String(template).replace(/\{\{(\w+)\}\}/g, (_, key) => {
+  return String(template).replace(/{{(\w+)}}/g, (_, key) => {
     return variables[key] == null ? "" : String(variables[key]);
   });
 }
@@ -1308,9 +1380,9 @@ export function I18nProvider({ children }) {
   const value = useMemo(
     () => ({
       language,
-      setLanguage: (nextLanguage) => {
-        if (SUPPORTED_LANGUAGES.includes(nextLanguage)) {
-          setLanguage(nextLanguage);
+      setLanguage: (lang) => {
+        if (SUPPORTED_LANGUAGES.includes(lang)) {
+          setLanguage(lang);
         }
       },
       supportedLanguages: SUPPORTED_LANGUAGES,
@@ -1328,4 +1400,3 @@ export function useI18n() {
   return ctx;
 }
 
-export default I18nContext;

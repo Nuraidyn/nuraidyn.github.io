@@ -21,7 +21,7 @@ def normalize_entry(entry: dict):
 
 
 def fetch_indicator_series(country: str, indicator: str, per_page: int = 200):
-    params = {"format": "json", "per_page": per_page, "mrnev": 70}
+    params = {"format": "json", "per_page": per_page, "date": "1990:2025"}
     url = build_url(country, indicator)
     retries = 3
     delay_seconds = 0.4
@@ -29,7 +29,6 @@ def fetch_indicator_series(country: str, indicator: str, per_page: int = 200):
         for attempt in range(retries + 1):
             resp = client.get(url, params=params)
             if resp.status_code in {429, 502, 503, 504} and attempt < retries:
-                # World Bank API and transit proxies can occasionally return transient errors.
                 time.sleep(delay_seconds * (attempt + 1))
                 continue
             resp.raise_for_status()

@@ -90,13 +90,13 @@ export default function AIInsights({ formData }) {
             {/* Income Tips */}
             <div>
               <p className="label">{t("incomeAnalysis.incomeTips")}</p>
-              <TipList items={insights.incomeTips} />
+              <TipList items={insights.incomeTips.map((k) => t(k))} />
             </div>
 
             {/* Expense Tips */}
             <div>
               <p className="label">{t("incomeAnalysis.expenseTips")}</p>
-              <TipList items={insights.expenseTips} />
+              <TipList items={insights.expenseTips.map((k) => t(k))} />
             </div>
           </div>
 
@@ -111,7 +111,7 @@ export default function AIInsights({ formData }) {
               ].map(({ key, label, goal }) => (
                 <div key={key} className="panel space-y-2">
                   <p className="text-xs uppercase tracking-widest text-faint font-semibold">{label}</p>
-                  <p className="text-sm text-muted leading-relaxed">{goal}</p>
+                  <p className="text-sm text-muted leading-relaxed">{t(goal.key, goal.vars)}</p>
                 </div>
               ))}
             </div>
