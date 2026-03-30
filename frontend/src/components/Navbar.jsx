@@ -1,7 +1,8 @@
 import React from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 
-import { EVisionLogoFull } from "./EVisionLogo";
+import logoDark from "../assets/logo-dark-transparent.png";
+import logoLight from "../assets/logo-light-transparent.png";
 import { useI18n } from "../context/I18nContext";
 import { useTheme } from "../context/ThemeContext";
 
@@ -136,7 +137,7 @@ const COMMUNITY = [
 
 /* Language list — always shown in native script */
 const LANGUAGES = [
-  { code: "en", flag: "🇬🇧", nativeName: "English"  },
+  { code: "en", flag: "🇺🇸", nativeName: "English"  },
   { code: "ru", flag: "🇷🇺", nativeName: "Русский"  },
   { code: "kz", flag: "🇰🇿", nativeName: "Қазақша"  },
   { code: "de", flag: "🇩🇪", nativeName: "Deutsch"  },
@@ -174,7 +175,11 @@ export default function Navbar({ onOpenAuth, isAuthenticated }) {
           aria-label={t("navbar.title")}
           className="shrink-0"
         >
-          <EVisionLogoFull markSize={30} wordmarkSize="sm" showKicker={false} animate />
+          <img
+            src={theme === "dark" ? logoDark : logoLight}
+            alt={t("navbar.title")}
+            className="h-14 w-auto"
+          />
         </Link>
 
         {/* ── Center: Products + Community (desktop) ── */}
