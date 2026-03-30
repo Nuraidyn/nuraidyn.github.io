@@ -1,7 +1,18 @@
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+// Mock chart libs to avoid canvas errors in jsdom
+vi.mock("react-chartjs-2", () => ({
+  Bar: () => <div data-testid="bar-chart" />,
+}));
+vi.mock("chart.js/auto", () => ({ Chart: class {} }));
+
+// Mock ThemeContext so IncomeComparisonSection doesn't require a real provider
+vi.mock("../../context/ThemeContext", () => ({
+  useTheme: () => ({ theme: "light", setTheme: vi.fn() }),
+}));
 
 import IncomeAnalysisPage from "../IncomeAnalysisPage";
 import { I18nProvider } from "../../context/I18nContext";
