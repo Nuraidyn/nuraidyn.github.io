@@ -1,6 +1,8 @@
 import React from "react";
-import { EVisionMark } from "../EVisionLogo";
 import { useI18n } from "../../context/I18nContext";
+import { useTheme } from "../../context/ThemeContext";
+import logoDark from "../../assets/logo-dark-transparent.png";
+import logoLight from "../../assets/logo-light-transparent.png";
 import { useReveal } from "../../hooks/useReveal";
 
 /**
@@ -11,6 +13,7 @@ import { useReveal } from "../../hooks/useReveal";
  */
 export default function HeroSection({ onScrollToAnalysis, onOpenAuth }) {
   const { t } = useI18n();
+  const { theme } = useTheme();
   const [ref, visible] = useReveal(0.01);
 
   return (
@@ -40,7 +43,12 @@ export default function HeroSection({ onScrollToAnalysis, onOpenAuth }) {
         ].join(" ")}
       >
         {/* Logo mark badge */}
-        <EVisionMark size={56} animate className="mb-2" />
+        <img
+          src={theme === "dark" ? logoDark : logoLight}
+          alt="logo"
+          className="mb-2 h-20 w-auto evision-logo-animate"
+          aria-hidden="true"
+        />
 
         {/* Kicker */}
         <span className="hero-kicker">{t("landing.heroKicker")}</span>
