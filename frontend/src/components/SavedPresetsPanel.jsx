@@ -49,7 +49,6 @@ export default function SavedPresetsPanel({ user, currentPayload, onLoad }) {
 
   useEffect(() => {
     loadPresets();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canUse]);
 
   const handleSave = async () => {

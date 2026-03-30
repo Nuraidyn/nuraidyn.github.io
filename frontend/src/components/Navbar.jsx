@@ -79,9 +79,9 @@ const TelegramIcon = () => (
 /* ── Products ── */
 const PRODUCTS = [
   {
-    labelKey: "navbar.productAnalysis",
-    descKey:  "navbar.productAnalysisDesc",
-    to: "/analysis",
+    labelKey: "navbar.productIncomeAnalysis",
+    descKey:  "navbar.productIncomeAnalysisDesc",
+    to: "/income-analysis",
     icon: (
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
         strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
