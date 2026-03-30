@@ -95,25 +95,8 @@ export function getTopCountriesForProfession(profession) {
  * @returns {string[]}
  */
 export function getIncomeTips(savingsRate) {
-  if (savingsRate < 0) {
-    return [
-      "Prioritize cutting non-essential expenses before seeking more income.",
-      "Consider freelance or part-time work to bridge the monthly gap.",
-      "Build a 1-month emergency buffer as the first financial milestone.",
-    ];
-  }
-  if (savingsRate < 20) {
-    return [
-      "Aim to increase income by 10-15% through skill development or a new role.",
-      "Negotiate a salary review — present market data for your profession.",
-      "Explore side income streams aligned with your existing expertise.",
-    ];
-  }
-  return [
-    "Your savings rate is solid. Consider investing the surplus to grow wealth.",
-    "Explore tax-advantaged accounts (pension, ISA/IRA) to compound gains.",
-    "Evaluate passive income opportunities: dividends, real estate, or bonds.",
-  ];
+  const tier = savingsRate < 0 ? "deficit" : savingsRate < 20 ? "stable" : "strong";
+  return [1, 2, 3].map((n) => `ai.incomeTip.${tier}${n}`);
 }
 
 /**
@@ -122,25 +105,8 @@ export function getIncomeTips(savingsRate) {
  * @returns {string[]}
  */
 export function getExpenseTips(savingsRate) {
-  if (savingsRate < 0) {
-    return [
-      "Apply the 50/30/20 rule: 50% needs, 30% wants, 20% savings.",
-      "Audit subscriptions and recurring services — cancel unused ones.",
-      "Cook at home more often; food spending is often the fastest to cut.",
-    ];
-  }
-  if (savingsRate < 20) {
-    return [
-      "Track spending in 3 categories: fixed, variable, and discretionary.",
-      "Reduce discretionary spending by 10% this month as a baseline test.",
-      "Batch major purchases to leverage discounts and reduce impulse buying.",
-    ];
-  }
-  return [
-    "Expenses look healthy. Focus optimization on high-return investments.",
-    "Review insurance and utilities annually — renegotiate or switch providers.",
-    "Automate transfers to savings on payday to maintain discipline.",
-  ];
+  const tier = savingsRate < 0 ? "deficit" : savingsRate < 20 ? "stable" : "strong";
+  return [1, 2, 3].map((n) => `ai.expenseTip.${tier}${n}`);
 }
 
 /**
@@ -155,19 +121,17 @@ export function getActionPlan(income, expenses, savingsRate, experienceYears) {
   const savings = calcSavings(income, expenses);
   const emergency = Math.max(income * 3, 0);
 
-  const plan3 = savings < 0
-    ? "Reduce monthly expenses by at least the deficit amount to break even."
-    : `Build a 1-month emergency fund: save ${savings.toFixed(0)} ${savings > 0 ? "consistently" : "starting now"}.`;
-
-  const plan6 = savingsRate < 20
-    ? `Reach a 20% savings rate (target: ${(income * 0.2).toFixed(0)}/month) and identify one income growth action.`
-    : `Reach a 3-month emergency reserve of ~${emergency.toFixed(0)} and start a recurring investment.`;
-
-  const plan12 = experienceYears >= 2
-    ? "Target a 10-15% income increase through promotion, job change, or freelance work."
-    : "Complete one relevant certification or course to accelerate career progression.";
-
-  return { month3: plan3, month6: plan6, month12: plan12 };
+  return {
+    month3:  savings < 0
+      ? { key: "ai.plan3.deficit" }
+      : { key: "ai.plan3.surplus", vars: { savings: savings.toFixed(0) } },
+    month6: savingsRate < 20
+      ? { key: "ai.plan6.low",  vars: { target: (income * 0.2).toFixed(0) } }
+      : { key: "ai.plan6.high", vars: { reserve: emergency.toFixed(0) } },
+    month12: experienceYears >= 2
+      ? { key: "ai.plan12.experienced" }
+      : { key: "ai.plan12.junior" },
+  };
 }
 
 // ── Income Comparison calculations ──────────────────────────────────────────

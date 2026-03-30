@@ -10,6 +10,10 @@ from app.core.config import (
     GEMINI_BASE_URL,
     GEMINI_MODEL,
     GEMINI_TIMEOUT_SECONDS,
+    GROQ_API_KEY,
+    GROQ_BASE_URL,
+    GROQ_MODEL,
+    GROQ_TIMEOUT_SECONDS,
     OPENAI_API_KEY,
     OPENAI_BASE_URL,
     OPENAI_MODEL,
@@ -295,13 +299,48 @@ def _gemini_answer(payload: ChartExplainRequest, summary: str, language: str) ->
     return content
 
 
+def _groq_answer(payload: ChartExplainRequest, summary: str, language: str) -> str:
+    base_url = GROQ_BASE_URL.rstrip("/")
+    prompt = _prompt_text(payload, summary, language)
+    with httpx.Client(timeout=GROQ_TIMEOUT_SECONDS) as client:
+        response = client.post(
+            f"{base_url}/chat/completions",
+            headers={
+                "Authorization": f"Bearer {GROQ_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": GROQ_MODEL,
+                "temperature": 0.2,
+                "max_tokens": 700,
+                "messages": [
+                    {"role": "system", "content": _build_system_prompt(language)},
+                    {"role": "user", "content": prompt},
+                ],
+            },
+        )
+        response.raise_for_status()
+        body = response.json()
+
+    choices = body.get("choices") or []
+    if not choices:
+        raise RuntimeError("Groq returned no choices")
+    content = (choices[0].get("message") or {}).get("content", "").strip()
+    if not content:
+        raise RuntimeError("Groq returned empty content")
+    return content
+
+
 def _resolve_provider() -> str:
     provider = (CHART_EXPLAIN_PROVIDER or "").strip().lower()
     if provider == "auto":
+        if GROQ_API_KEY:
+            return "groq"
         if GEMINI_API_KEY:
             return "gemini"
         if OPENAI_API_KEY:
             return "openai"
+        return "local-fallback"
     return provider or "openai"
 
 
@@ -342,7 +381,15 @@ def explain_chart(payload: ChartExplainRequest) -> ChartExplainResponse:
             warning="GEMINI_API_KEY is not configured; returned local summary.",
         )
 
-    if provider not in {"openai", "gemini"}:
+    if provider == "groq" and not GROQ_API_KEY:
+        return ChartExplainResponse(
+            answer=_fallback_answer(payload, summary, language, warning="GROQ_API_KEY is not set"),
+            provider="local-fallback",
+            model=None,
+            warning="GROQ_API_KEY is not configured; returned local summary.",
+        )
+
+    if provider not in {"openai", "gemini", "groq"}:
         return ChartExplainResponse(
             answer=_fallback_answer(
                 payload,
@@ -358,22 +405,16 @@ def explain_chart(payload: ChartExplainRequest) -> ChartExplainResponse:
     try:
         if provider == "gemini":
             answer = _gemini_answer(payload, summary, language)
-            return ChartExplainResponse(
-                answer=answer,
-                provider="gemini",
-                model=GEMINI_MODEL,
-                warning=None,
-            )
+            return ChartExplainResponse(answer=answer, provider="gemini", model=GEMINI_MODEL, warning=None)
+
+        if provider == "groq":
+            answer = _groq_answer(payload, summary, language)
+            return ChartExplainResponse(answer=answer, provider="groq", model=GROQ_MODEL, warning=None)
 
         answer = _openai_answer(payload, summary, language)
-        return ChartExplainResponse(
-            answer=answer,
-            provider="openai",
-            model=OPENAI_MODEL,
-            warning=None,
-        )
+        return ChartExplainResponse(answer=answer, provider="openai", model=OPENAI_MODEL, warning=None)
     except Exception as exc:
-        engine = "Gemini" if provider == "gemini" else "OpenAI"
+        engine = {"gemini": "Gemini", "groq": "Groq"}.get(provider, "OpenAI")
         return ChartExplainResponse(
             answer=_fallback_answer(payload, summary, language, warning=str(exc)),
             provider="local-fallback",
