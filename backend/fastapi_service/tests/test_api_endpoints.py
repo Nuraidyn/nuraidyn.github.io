@@ -3,7 +3,7 @@ import os
 import tempfile
 import unittest
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -184,8 +184,8 @@ class ObservationApiTests(FastApiBaseTestCase):
             {"year": 2023, "value": 9.9},
         ]
         with patch(
-            "app.api.v1.observations.fetch_indicator_series",
-            return_value=series,
+            "app.api.v1.observations.async_fetch_indicator_series",
+            new=AsyncMock(return_value=series),
         ) as mocked_fetch:
             response = self.client.get(
                 "/api/v1/observations",

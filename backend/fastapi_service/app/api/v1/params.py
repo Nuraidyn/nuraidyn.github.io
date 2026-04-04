@@ -32,3 +32,6 @@ IndicatorCodeParam = Annotated[
 
 YearParam = Annotated[int, Query(..., ge=MIN_SAFE_YEAR, le=MAX_SAFE_YEAR)]
 OptionalYearParam = Annotated[int | None, Query(ge=MIN_SAFE_YEAR, le=MAX_SAFE_YEAR)]
+
+LimitParam = Annotated[int, Query(ge=1, le=1000, description="Max records to return (1–1000).")]
+OffsetParam = Annotated[int, Query(ge=0, description="Number of records to skip.")]
