@@ -13,7 +13,7 @@ export const djangoPublicClient = axios.create({
 
 export const fastapiClient = axios.create({
   baseURL: import.meta.env.VITE_FASTAPI_URL || "http://127.0.0.1:8001/api/v1",
-  timeout: 12000,
+  timeout: 15000,
 });
 
 export const setAuthToken = (token) => {

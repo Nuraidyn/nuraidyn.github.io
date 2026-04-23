@@ -15,13 +15,14 @@ export const fetchObservations = async (params) => {
   return res.data;
 };
 
-export const fetchObservationsWithMeta = async (params) => {
-  const res = await fastapiClient.get("/observations", { params });
+export const fetchObservationsWithMeta = async (params, signal) => {
+  const res = await fastapiClient.get("/observations", { params, signal });
   return {
     data: res.data,
     meta: {
       source: res.headers["x-data-source"] || "unknown",
       fetchedAt: res.headers["x-fetched-at"] || null,
+      empty: res.headers["x-data-empty"] === "true",
     },
   };
 };
@@ -43,19 +44,20 @@ export const fetchGiniRanking = async ({ year, countries }) => {
   return res.data;
 };
 
-export const createForecast = async ({ country, indicator, horizon_years }) => {
+export const createForecast = async ({ country, indicator, horizon_years }, signal) => {
   const res = await fastapiClient.post("/forecast", null, {
     params: { country, indicator, horizon_years },
+    signal,
   });
   return res.data;
 };
 
-export const fetchLatestForecast = async ({ country, indicator }) => {
-  const res = await fastapiClient.get("/forecast/latest", { params: { country, indicator } });
+export const fetchLatestForecast = async ({ country, indicator }, signal) => {
+  const res = await fastapiClient.get("/forecast/latest", { params: { country, indicator }, signal });
   return res.data;
 };
 
-export const explainChart = async (payload) => {
-  const res = await fastapiClient.post("/analytics/chart/explain", payload);
+export const explainChart = async (payload, signal) => {
+  const res = await fastapiClient.post("/analytics/chart/explain", payload, { signal, timeout: 30000 });
   return res.data;
 };
