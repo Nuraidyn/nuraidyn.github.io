@@ -1,6 +1,7 @@
 import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { resendVerification } from "../api/auth";
 import AuthContext from "../context/AuthContext";
 import { useI18n } from "../context/I18nContext";
 import { assessPasswordStrength } from "../utils/passwordStrength";
@@ -24,6 +25,55 @@ function EyeOffIcon() {
       <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
       <line x1="1" y1="1" x2="23" y2="23" />
     </svg>
+  );
+}
+
+/* ── verification prompt ─────────────────────────────────── */
+
+function VerificationPrompt({ email, t, onBack }) {
+  const [resendState, setResendState] = useState("idle"); // idle | sending | sent | error
+
+  const handleResend = async () => {
+    setResendState("sending");
+    try {
+      await resendVerification(email ? { email } : {});
+      setResendState("sent");
+    } catch {
+      setResendState("error");
+    }
+  };
+
+  const subtitle = email
+    ? t("auth.verify.subtitle", { email })
+    : t("auth.verify.subtitleNoEmail");
+
+  return (
+    <div className="space-y-3 mt-4">
+      <h4 className="text-sm font-medium">{t("auth.verify.title")}</h4>
+      <p className="text-xs text-muted">{subtitle}</p>
+      <button
+        type="button"
+        className="btn-secondary"
+        onClick={handleResend}
+        disabled={resendState === "sending" || resendState === "sent"}
+      >
+        {resendState === "sending"
+          ? t("auth.processing")
+          : resendState === "sent"
+            ? t("auth.verify.resendSent")
+            : t("auth.verify.resend")}
+      </button>
+      {resendState === "error" && (
+        <p className="text-xs text-rose-300">{t("auth.verify.resendError")}</p>
+      )}
+      <button
+        type="button"
+        className="text-xs text-muted hover:text-primary block"
+        onClick={onBack}
+      >
+        {t("auth.verify.backToLogin")}
+      </button>
+    </div>
   );
 }
 
@@ -103,6 +153,8 @@ export default function AuthPanel({ onAuthSuccess }) {
   const [message, setMessage] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  // verifyMode = null | { email: string } — show verification prompt
+  const [verifyMode, setVerifyMode] = useState(null);
 
   const handleChange = (event) => {
     const { name, value, type, checked } = event.target;
@@ -115,6 +167,7 @@ export default function AuthPanel({ onAuthSuccess }) {
   const switchMode = (next) => {
     setMode(next);
     setMessage("");
+    setVerifyMode(null);
     setShowPassword(false);
     setShowConfirmPassword(false);
   };
@@ -129,6 +182,10 @@ export default function AuthPanel({ onAuthSuccess }) {
         password: formState.password,
       });
       if (!result.ok) {
+        if (result.error?.code === "email_not_verified") {
+          setVerifyMode({ email: result.error.email || formState.email });
+          return;
+        }
         const base = t(result.error?.msgKey ?? "auth.errorUnknown");
         const detail = result.error?.detail;
         setMessage(detail ? `${base} ${detail}` : base);
@@ -160,6 +217,8 @@ export default function AuthPanel({ onAuthSuccess }) {
         const base = t(result.error?.msgKey ?? "auth.errorUnknown");
         const detail = result.error?.detail;
         setMessage(detail ? `${base} ${detail}` : base);
+      } else if (result.verificationRequired) {
+        setVerifyMode({ email: result.email });
       } else {
         setMessage(t("auth.registrationSuccess"));
         setMode("login");
@@ -185,6 +244,19 @@ export default function AuthPanel({ onAuthSuccess }) {
             {t("auth.signOut")}
           </button>
         </div>
+      </div>
+    );
+  }
+
+  if (verifyMode) {
+    return (
+      <div className="panel">
+        <h3 className="panel-title">{t("auth.access")}</h3>
+        <VerificationPrompt
+          email={verifyMode.email}
+          t={t}
+          onBack={() => switchMode("login")}
+        />
       </div>
     );
   }

@@ -20,6 +20,18 @@ export function parseAuthError(error) {
     return { code: "invalid_credentials", msgKey: "auth.invalidCredentials", detail };
   }
 
+  if (status === 403) {
+    if (data?.code === "email_not_verified") {
+      return {
+        code: "email_not_verified",
+        msgKey: "auth.emailNotVerified",
+        detail: null,
+        email: typeof data.email === "string" ? data.email : null,
+      };
+    }
+    return { code: "forbidden", msgKey: "auth.errorUnknown", detail: null };
+  }
+
   if (status === 429) {
     return { code: "rate_limited", msgKey: "auth.rateLimited", detail: null };
   }

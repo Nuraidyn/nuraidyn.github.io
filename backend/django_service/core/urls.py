@@ -10,6 +10,8 @@ from .views import (
     PresetDetailView,
     PresetsView,
     RegisterView,
+    ResendVerificationView,
+    VerifyEmailView,
 )
 
 urlpatterns = [
@@ -18,6 +20,8 @@ urlpatterns = [
     path("auth/token/refresh", CustomTokenRefreshView.as_view(), name="token_refresh"),
     path("auth/me", MeView.as_view(), name="me"),
     path("auth/introspect", IntrospectTokenView.as_view(), name="introspect"),
+    path("auth/verify-email", VerifyEmailView.as_view(), name="verify_email"),
+    path("auth/resend-verification", ResendVerificationView.as_view(), name="resend_verification"),
     path("agreements/active", ActiveAgreementView.as_view(), name="active_agreement"),
     path("agreements/accept", AcceptAgreementView.as_view(), name="accept_agreement"),
     path("presets", PresetsView.as_view(), name="presets"),

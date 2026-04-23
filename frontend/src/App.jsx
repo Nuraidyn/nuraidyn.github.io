@@ -11,6 +11,7 @@ import Home from "./pages/Home";
 import IncomeAnalysisPage from "./pages/IncomeAnalysisPage";
 import ForecastPage from "./pages/Forecast";
 import SavedPage from "./pages/Saved";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
 
 export default function App() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
                     <Route path="/income-analysis" element={<IncomeAnalysisPage />} />
                     <Route path="/forecast" element={<ForecastPage />} />
                     <Route path="/saved" element={<SavedPage />} />
+                    <Route path="/verify-email" element={<VerifyEmailPage />} />
                   </Route>
                 </Routes>
               </BrowserRouter>

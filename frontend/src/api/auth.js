@@ -30,3 +30,13 @@ export const acceptAgreement = async () => {
   const res = await djangoClient.post("/agreements/accept");
   return res.data;
 };
+
+export const verifyEmail = async (token) => {
+  const res = await djangoPublicClient.post("/auth/verify-email", { token });
+  return res.data;
+};
+
+export const resendVerification = async (payload) => {
+  const res = await djangoPublicClient.post("/auth/resend-verification", payload);
+  return res.data;
+};

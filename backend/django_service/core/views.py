@@ -5,12 +5,25 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
+from .email_verification import create_verification_token, send_verification_email, verify_token
 from .models import AgreementAcceptance, AnalysisPreset
-from .serializers import AgreementSerializer, AnalysisPresetSerializer, RegisterSerializer, UserSerializer
+from .serializers import (
+    AgreementSerializer,
+    AnalysisPresetSerializer,
+    RegisterSerializer,
+    ResendVerificationSerializer,
+    UserSerializer,
+)
 from .tokens import CustomTokenObtainPairSerializer
 from .utils import get_active_agreement, has_accepted_active_agreement
 
 User = get_user_model()
+
+_VERIFY_ERRORS = {
+    "invalid": "Verification link is invalid.",
+    "expired": "Verification link has expired. Please request a new one.",
+    "already_used": "This link has already been used. Try signing in.",
+}
 
 
 class RegisterView(APIView):
@@ -22,24 +35,112 @@ class RegisterView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         user = serializer.save()
-        profile = getattr(user, "profile", None)
-        payload = {
-            "id": user.id,
-            "username": user.username,
-            "email": user.email,
-            "role": profile.role if profile else "user",
-            "agreement_accepted": has_accepted_active_agreement(user),
-        }
-        return Response(payload, status=status.HTTP_201_CREATED)
+
+        token = create_verification_token(user)
+        send_verification_email(user, token)
+
+        return Response(
+            {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+                "verification_required": True,
+            },
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class CustomTokenView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
     throttle_scope = "auth"
 
+    def post(self, request, *args, **kwargs):
+        username = request.data.get("username", "")
+        password = request.data.get("password", "")
+
+        # Check for unverified email BEFORE SimpleJWT authenticates, so we can
+        # return a distinct 403 code that the frontend can act on specifically.
+        try:
+            user = User.objects.select_related("profile").get(username=username)
+            if user.check_password(password):
+                profile = getattr(user, "profile", None)
+                if profile and not profile.is_email_verified:
+                    return Response(
+                        {
+                            "code": "email_not_verified",
+                            "detail": "Please verify your email address before logging in.",
+                            "email": user.email,
+                        },
+                        status=status.HTTP_403_FORBIDDEN,
+                    )
+        except User.DoesNotExist:
+            pass
+
+        return super().post(request, *args, **kwargs)
+
 
 class CustomTokenRefreshView(TokenRefreshView):
     throttle_scope = "auth"
+
+
+class VerifyEmailView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        token_str = request.data.get("token") or request.query_params.get("token", "")
+        if not token_str:
+            return Response(
+                {"detail": "Token is required."}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+        ok, user, error_code = verify_token(str(token_str))
+        if not ok:
+            return Response(
+                {
+                    "code": error_code,
+                    "detail": _VERIFY_ERRORS.get(error_code, "Verification failed."),
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(
+            {"detail": "Email verified successfully.", "username": user.username},
+            status=status.HTTP_200_OK,
+        )
+
+
+class ResendVerificationView(APIView):
+    permission_classes = [AllowAny]
+    throttle_scope = "resend_verification"
+
+    def post(self, request):
+        serializer = ResendVerificationSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        email = serializer.validated_data.get("email", "")
+        username = serializer.validated_data.get("username", "")
+
+        user = None
+        try:
+            if email:
+                user = User.objects.select_related("profile").get(email=email)
+            elif username:
+                user = User.objects.select_related("profile").get(username=username)
+        except User.DoesNotExist:
+            pass
+
+        if user and user.email:
+            profile = getattr(user, "profile", None)
+            if profile and not profile.is_email_verified:
+                token = create_verification_token(user)
+                send_verification_email(user, token)
+
+        # Always 200 — prevents user enumeration
+        return Response(
+            {"detail": "If the account exists and is unverified, a new email has been sent."},
+            status=status.HTTP_200_OK,
+        )
 
 
 class ActiveAgreementView(APIView):
@@ -83,6 +184,7 @@ class MeView(APIView):
             "email": request.user.email,
             "role": profile.role if profile else "user",
             "agreement_accepted": has_accepted_active_agreement(request.user),
+            "email_verified": profile.is_email_verified if profile else True,
         }
         return Response(data)
 

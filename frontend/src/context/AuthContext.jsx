@@ -80,9 +80,13 @@ export function AuthProvider({ children }) {
   const register = useCallback(async (payload) => {
     setAuthStatus({ loading: true, error: "" });
     try {
-      await registerUser(payload);
+      const data = await registerUser(payload);
       setAuthStatus({ loading: false, error: "" });
-      return { ok: true };
+      return {
+        ok: true,
+        verificationRequired: data?.verification_required === true,
+        email: data?.email || "",
+      };
     } catch (error) {
       setAuthStatus({ loading: false, error: "" });
       return { ok: false, error: parseAuthError(error) };

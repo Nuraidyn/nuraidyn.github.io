@@ -115,8 +115,28 @@ REST_FRAMEWORK = {
         "auth": os.getenv("DJANGO_THROTTLE_AUTH", "20/min"),
         # Protect agreement acceptance endpoint from spam
         "agreements": os.getenv("DJANGO_THROTTLE_AGREEMENTS", "60/min"),
+        # Prevent verification email flooding
+        "resend_verification": os.getenv("DJANGO_THROTTLE_RESEND", "3/hour"),
     },
 }
+
+# ── Email ────────────────────────────────────────────────────────────────────
+# Default: console backend (prints to stdout) — safe for local dev.
+# Set EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend in prod.
+EMAIL_BACKEND = os.getenv(
+    "EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend"
+)
+EMAIL_HOST = os.getenv("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "1") == "1"
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@evision.app")
+
+# ── Email verification ────────────────────────────────────────────────────────
+# URL used to build the verification link sent to the user's inbox.
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+EMAIL_VERIFICATION_TTL_HOURS = int(os.getenv("EMAIL_VERIFICATION_TTL_HOURS", "24"))
 
 CORS_ALLOW_ALL_ORIGINS = os.getenv("DJANGO_CORS_ALLOW_ALL", "0") == "1"
 CORS_ALLOWED_ORIGINS = [
