@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.api.v1.params import CountryCodeParam, IndicatorCodeParam, LimitParam, OffsetParam, OptionalYearParam
 from app.db import get_db
+from app.deps import require_agreement
 from app.models import Country, Indicator, Observation
 from app.schemas import ObservationRead
 from app.services.world_bank import async_fetch_indicator_series
@@ -22,6 +23,7 @@ async def list_observations(
     limit: LimitParam = 100,
     offset: OffsetParam = 0,
     db: Session = Depends(get_db),
+    _: dict = Depends(require_agreement),
 ):
     if start_year is not None and end_year is not None and start_year > end_year:
         raise HTTPException(status_code=400, detail="start_year must be <= end_year")
@@ -74,6 +76,8 @@ async def list_observations(
     response.headers["X-Data-Source"] = "world_bank_live"
     response.headers["X-Fetched-At"] = datetime.now(timezone.utc).isoformat()
     response.headers["X-Total-Count"] = str(total)
+    if total == 0:
+        response.headers["X-Data-Empty"] = "true"
 
     return [
         ObservationRead(

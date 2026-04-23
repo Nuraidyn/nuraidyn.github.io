@@ -19,9 +19,7 @@ import { useAnalysis } from "../context/AnalysisContext";
 import AuthContext from "../context/AuthContext";
 import { useI18n } from "../context/I18nContext";
 import { useUI } from "../context/UIContext";
-
-const MAX_COUNTRIES = 4;
-const MAX_INDICATORS = 4;
+import { MAX_COUNTRIES, MAX_INDICATORS } from "../constants";
 
 export default function Home() {
   const { t } = useI18n();
@@ -103,21 +101,29 @@ export default function Home() {
     setSelectionWarning("");
     setIsLoading(true);
     try {
-      const data = [];
-      for (const indicator of selectedIndicators) {
-        const series = [];
-        for (const country of selectedCountries) {
-          const payload = await fetchObservationsWithMeta({
-            country,
-            indicator,
-            start_year: startYear,
-            end_year: endYear,
-          });
-          series.push({ country, data: payload.data, meta: payload.meta });
-        }
-        data.push({ indicator, series });
-      }
+      // Fire all (indicator × country) requests in parallel instead of sequentially.
+      // 4 indicators × 4 countries = 16 concurrent requests vs 16 sequential.
+      const data = await Promise.all(
+        selectedIndicators.map(async (indicator) => {
+          const series = await Promise.all(
+            selectedCountries.map(async (country) => {
+              const payload = await fetchObservationsWithMeta({
+                country,
+                indicator,
+                start_year: startYear,
+                end_year: endYear,
+              });
+              return { country, data: payload.data, meta: payload.meta };
+            })
+          );
+          return { indicator, series };
+        })
+      );
       setDatasets(data);
+      const hasEmpty = data.some((entry) => entry.series.some((s) => s.meta?.empty));
+      if (hasEmpty) {
+        setSelectionWarning(t("home.warningNoData"));
+      }
     } catch {
       setError(t("home.errorLoad"));
     } finally {

@@ -46,7 +46,12 @@ export function AuthProvider({ children }) {
       setAuthToken(null);
       localStorage.removeItem(TOKEN_KEY);
       setUser(null);
-      setAuthStatus({ loading: false, error: "Session expired." });
+      // Save current URL so we can redirect back after re-login
+      const currentPath = window.location.pathname + window.location.search;
+      if (currentPath && currentPath !== "/") {
+        sessionStorage.setItem("ewp_redirect", currentPath);
+      }
+      setAuthStatus({ loading: false, error: "Session expired.", expired: true });
     }
   }, []);
 

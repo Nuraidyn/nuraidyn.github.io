@@ -117,20 +117,24 @@ def run_forecast(
     years, values = sanitize_training_series(years, values)
     if len(values) < MIN_TRAINING_POINTS:
         return None
+    is_constant = float(np.std(values)) == 0.0
     future_years, predictions, std = linear_forecast(values, years, horizon)
     backtest = backtest_linear(values, years, test_points=5) or {}
     metrics = f"residual_std={std:.4f}"
     if backtest:
         metrics = f"{metrics}; backtest_points={backtest.get('points')}; mae={backtest.get('mae'):.4f}; rmse={backtest.get('rmse'):.4f}"
+    assumptions_text = (
+        "Linear trend on recent historical values (up to last 25 years); "
+        "training values winsorized at 5th/95th percentile; residual std used for intervals."
+    )
+    if is_constant:
+        assumptions_text += " WARNING: all training values are identical — series is constant; forecast is a flat line with zero-width confidence interval."
     run = ForecastRun(
         country_id=country.id,
         target_indicator_id=indicator.id,
         model_name=model_name,
         horizon_years=horizon,
-        assumptions=(
-            "Linear trend on recent historical values (up to last 25 years); "
-            "training values winsorized at 5th/95th percentile; residual std used for intervals."
-        ),
+        assumptions=assumptions_text,
         metrics=metrics,
     )
     db.add(run)

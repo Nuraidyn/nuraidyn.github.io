@@ -10,7 +10,7 @@ from app.api.v1.inequality import router as inequality_router
 from app.api.v1.ingestion import router as ingestion_router
 from app.api.v1.ingestion_runs import router as ingestion_runs_router
 from app.api.v1.observations import router as observations_router
-from app.core.config import CORS_ALLOW_ORIGINS, RATE_LIMIT_BURST, RATE_LIMIT_ENABLED, RATE_LIMIT_RPS
+from app.core.config import APP_ENV, CORS_ALLOW_ORIGINS, JWT_SECRET, RATE_LIMIT_BURST, RATE_LIMIT_ENABLED, RATE_LIMIT_RPS
 from app.db import Base, engine
 from app.middleware.rate_limit import RateLimitMiddleware
 import app.models_analytics  # noqa: F401
@@ -52,3 +52,13 @@ app.include_router(news_router, prefix="/api/v1")
 @app.on_event("startup")
 def create_tables():
     Base.metadata.create_all(bind=engine)
+
+
+@app.on_event("startup")
+def check_secret_key():
+    _INSECURE_DEFAULTS = {"dev-secret-key", "secret", "changeme", ""}
+    if APP_ENV == "production" and JWT_SECRET in _INSECURE_DEFAULTS:
+        raise RuntimeError(
+            "SECURITY: JWT_SECRET / DJANGO_SECRET_KEY is set to an insecure default value. "
+            "Set a strong random secret in your .env before running in production."
+        )

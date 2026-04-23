@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class CountryCreate(BaseModel):
@@ -181,7 +181,7 @@ class ChartExplainDataset(BaseModel):
 
 
 class ChartExplainRequest(BaseModel):
-    question: str
+    question: str = Field(..., min_length=1, max_length=2000)
     datasets: list[ChartExplainDataset]
     language: str | None = None
     start_year: int | None = None

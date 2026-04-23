@@ -70,12 +70,7 @@ def get_authz_context(token: str = Depends(get_token)) -> AuthzContext:
 
 def require_roles(*roles: str) -> Callable:
     def checker(ctx: AuthzContext = Depends(get_authz_context)):
-        role = ctx.role
-        roles_claim = None
-        allowed = set(roles)
-        if role and role in allowed:
-            return ctx
-        if isinstance(roles_claim, list) and any(item in allowed for item in roles_claim):
+        if ctx.role and ctx.role in set(roles):
             return ctx
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient role")
 

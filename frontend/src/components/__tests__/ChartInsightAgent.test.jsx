@@ -97,7 +97,8 @@ describe("ChartInsightAgent", () => {
             ],
           },
         ],
-      })
+      }),
+      expect.any(AbortSignal)
     );
 
     expect(screen.getByText(/Trend is mostly stable/i)).toBeInTheDocument();

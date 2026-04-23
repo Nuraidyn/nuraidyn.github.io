@@ -19,6 +19,11 @@ export default function ChartInsightAgent({
   const [answer, setAnswer] = useState("");
   const [meta, setMeta] = useState({ provider: "", model: "", warning: "" });
   const [status, setStatus] = useState({ loading: false, error: "" });
+  const abortRef = useRef(null);
+
+  useEffect(() => {
+    return () => abortRef.current?.abort();
+  }, []);
 
   const indicatorMap = useMemo(() => {
     return new Map(indicators.map((item) => [item.code, item.label || item.name || item.code]));
@@ -37,6 +42,10 @@ export default function ChartInsightAgent({
       setStatus({ loading: false, error: t("ai.errorNoData") });
       return;
     }
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const { signal } = controller;
     setStatus({ loading: true, error: "" });
     try {
       const payload = {
@@ -56,7 +65,8 @@ export default function ChartInsightAgent({
           })),
         })),
       };
-      const response = await explainChart(payload);
+      const response = await explainChart(payload, signal);
+      if (signal.aborted) return;
       setAnswer(response.answer || "");
       setMeta({
         provider: response.provider || "",
@@ -65,6 +75,7 @@ export default function ChartInsightAgent({
       });
       setStatus({ loading: false, error: "" });
     } catch {
+      if (signal.aborted) return;
       setStatus({ loading: false, error: t("ai.errorFailed") });
     }
   };
