@@ -64,6 +64,19 @@ class ResendVerificationSerializer(serializers.Serializer):
         return attrs
 
 
+class GoogleAuthSerializer(serializers.Serializer):
+    credential = serializers.CharField()
+
+
+class ForgotPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    token = serializers.CharField()
+    new_password = serializers.CharField(write_only=True, min_length=8)
+
+
 class AnalysisPresetSerializer(serializers.ModelSerializer):
     class Meta:
         model = AnalysisPreset

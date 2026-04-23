@@ -1,5 +1,6 @@
 import os
 import warnings
+from datetime import timedelta
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -31,6 +32,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
     "core",
 ]
 
@@ -100,6 +102,32 @@ STATIC_URL = "/static/"
 # STATICFILES_DIRS = [BASE_DIR / "static"]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# ── SimpleJWT ─────────────────────────────────────────────────────────────────
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=int(os.getenv("JWT_ACCESS_TTL_MINUTES", "15"))),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=int(os.getenv("JWT_REFRESH_TTL_DAYS", "7"))),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": False,
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
+    "TOKEN_OBTAIN_SERIALIZER": "core.tokens.CustomTokenObtainPairSerializer",
+}
+
+# ── Refresh-token cookie ───────────────────────────────────────────────────────
+# The refresh token is issued as an httpOnly cookie scoped to /api/auth/.
+# The access token is returned in the JSON body only (in-memory on the client).
+REFRESH_COOKIE_NAME = os.getenv("REFRESH_COOKIE_NAME", "ewp_refresh")
+REFRESH_COOKIE_PATH = "/api/auth/"
+REFRESH_COOKIE_HTTPONLY = True
+REFRESH_COOKIE_SAMESITE = "Strict"
+# Secure=True requires HTTPS; set to False only in local dev.
+REFRESH_COOKIE_SECURE = _APP_ENV == "production"
+REFRESH_COOKIE_MAX_AGE = int(os.getenv("JWT_REFRESH_TTL_DAYS", "7")) * 24 * 60 * 60
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
@@ -117,6 +145,8 @@ REST_FRAMEWORK = {
         "agreements": os.getenv("DJANGO_THROTTLE_AGREEMENTS", "60/min"),
         # Prevent verification email flooding
         "resend_verification": os.getenv("DJANGO_THROTTLE_RESEND", "3/hour"),
+        # Prevent password reset email flooding
+        "forgot_password": os.getenv("DJANGO_THROTTLE_FORGOT_PASSWORD", "5/hour"),
     },
 }
 
@@ -137,6 +167,10 @@ DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "noreply@evision.app")
 # URL used to build the verification link sent to the user's inbox.
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 EMAIL_VERIFICATION_TTL_HOURS = int(os.getenv("EMAIL_VERIFICATION_TTL_HOURS", "24"))
+PASSWORD_RESET_TTL_MINUTES = int(os.getenv("PASSWORD_RESET_TTL_MINUTES", "60"))
+
+# ── Google OAuth2 ─────────────────────────────────────────────────────────────
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
 
 CORS_ALLOW_ALL_ORIGINS = os.getenv("DJANGO_CORS_ALLOW_ALL", "0") == "1"
 CORS_ALLOWED_ORIGINS = [

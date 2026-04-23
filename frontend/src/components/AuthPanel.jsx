@@ -1,10 +1,11 @@
-import React, { useContext, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useCallback, useContext, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 import { resendVerification } from "../api/auth";
 import AuthContext from "../context/AuthContext";
 import { useI18n } from "../context/I18nContext";
 import { assessPasswordStrength } from "../utils/passwordStrength";
+import GoogleLoginButton from "./GoogleLoginButton";
 
 const REDIRECT_KEY = "ewp_redirect";
 
@@ -90,7 +91,7 @@ const STRENGTH_WIDTHS = {
   strong: "w-full",
 };
 
-function PasswordStrengthMeter({ password, t }) {
+export function PasswordStrengthMeter({ password, t }) {
   if (!password) return null;
   const { level } = assessPasswordStrength(password);
   return (
@@ -138,11 +139,12 @@ function PasswordInput({ name, value, onChange, required, t, show, onToggle, id 
 /* ── main component ──────────────────────────────────────── */
 
 export default function AuthPanel({ onAuthSuccess }) {
-  const { user, authStatus, login, register, logout, agreement } = useContext(AuthContext);
+  const { user, authStatus, login, loginWithGoogle, register, logout, agreement } = useContext(AuthContext);
   const { t } = useI18n();
   const navigate = useNavigate();
 
   const [mode, setMode] = useState("login");
+  const [googleError, setGoogleError] = useState("");
   const [formState, setFormState] = useState({
     username: "",
     email: "",
@@ -167,10 +169,26 @@ export default function AuthPanel({ onAuthSuccess }) {
   const switchMode = (next) => {
     setMode(next);
     setMessage("");
+    setGoogleError("");
     setVerifyMode(null);
     setShowPassword(false);
     setShowConfirmPassword(false);
   };
+
+  const handleGoogleSuccess = useCallback(async (credential) => {
+    setGoogleError("");
+    const result = await loginWithGoogle(credential);
+    if (!result.ok) {
+      setGoogleError(t(result.error?.msgKey ?? "auth.googleError"));
+    } else {
+      onAuthSuccess?.();
+      const redirect = sessionStorage.getItem(REDIRECT_KEY);
+      if (redirect) {
+        sessionStorage.removeItem(REDIRECT_KEY);
+        navigate(redirect, { replace: true });
+      }
+    }
+  }, [loginWithGoogle, onAuthSuccess, navigate, t]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -326,6 +344,14 @@ export default function AuthPanel({ onAuthSuccess }) {
           <PasswordStrengthMeter password={formState.password} t={t} />
         )}
 
+        {mode === "login" && (
+          <div className="flex justify-end">
+            <Link to="/forgot-password" className="text-xs text-muted hover:text-primary">
+              {t("auth.forgotPassword")}
+            </Link>
+          </div>
+        )}
+
         {mode === "register" && (
           <>
             <label className="label" htmlFor="auth-confirm-password">{t("auth.confirmPassword")}</label>
@@ -369,6 +395,20 @@ export default function AuthPanel({ onAuthSuccess }) {
           <p className="text-xs text-rose-200/90">{message}</p>
         )}
       </form>
+
+      <div className="relative flex items-center my-3">
+        <div className="flex-grow border-t border-surface-2" />
+        <span className="mx-3 text-xs text-faint select-none">{t("auth.orDivider")}</span>
+        <div className="flex-grow border-t border-surface-2" />
+      </div>
+
+      <GoogleLoginButton
+        onSuccess={handleGoogleSuccess}
+        onError={() => setGoogleError(t("auth.googleError"))}
+      />
+      {googleError && (
+        <p className="text-xs text-rose-200/90 mt-2">{googleError}</p>
+      )}
     </div>
   );
 }
