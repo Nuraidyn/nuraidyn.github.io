@@ -4,16 +4,6 @@ import { useNavigate } from "react-router-dom";
 import AuthContext from "../context/AuthContext";
 import { useI18n } from "../context/I18nContext";
 
-const translateAuthError = (message, t) => {
-  if (!message) return "";
-  const map = {
-    "Agreement unavailable.": "auth.agreementUnavailable",
-    "Invalid credentials.": "auth.invalidCredentials",
-    "Session expired.": "auth.sessionExpired",
-  };
-  return map[message] ? t(map[message]) : message;
-};
-
 const REDIRECT_KEY = "ewp_redirect";
 
 export default function AuthPanel({ onAuthSuccess }) {
@@ -47,7 +37,9 @@ export default function AuthPanel({ onAuthSuccess }) {
         password: formState.password,
       });
       if (!result.ok) {
-        setMessage(t("auth.loginFailed"));
+        const base = t(result.error?.msgKey ?? "auth.errorUnknown");
+        const detail = result.error?.detail;
+        setMessage(detail ? `${base} ${detail}` : base);
       } else {
         onAuthSuccess?.();
         // Redirect back to the page the user was on when their session expired
@@ -69,7 +61,9 @@ export default function AuthPanel({ onAuthSuccess }) {
         accept_agreement: formState.acceptAgreement,
       });
       if (!result.ok) {
-        setMessage(t("auth.registrationFailed"));
+        const base = t(result.error?.msgKey ?? "auth.errorUnknown");
+        const detail = result.error?.detail;
+        setMessage(detail ? `${base} ${detail}` : base);
       } else {
         setMessage(t("auth.registrationSuccess"));
         setMode("login");
@@ -177,8 +171,11 @@ export default function AuthPanel({ onAuthSuccess }) {
         <button className="btn-primary" type="submit" disabled={authStatus.loading}>
           {authStatus.loading ? t("auth.processing") : mode === "login" ? t("auth.signIn") : t("auth.createAccount")}
         </button>
-        {(authStatus.error || message) && (
-          <p className="text-xs text-rose-200/90">{translateAuthError(authStatus.error, t) || message}</p>
+        {authStatus.error === "Session expired." && (
+          <p className="text-xs text-rose-200/90">{t("auth.sessionExpired")}</p>
+        )}
+        {message && (
+          <p className="text-xs text-rose-200/90">{message}</p>
         )}
       </form>
     </div>

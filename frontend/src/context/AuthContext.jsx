@@ -8,6 +8,7 @@ import {
   registerUser,
 } from "../api/auth";
 import { setAuthToken } from "../api/client";
+import { parseAuthError } from "../utils/parseAuthError";
 
 const AuthContext = createContext(null);
 
@@ -71,8 +72,8 @@ export function AuthProvider({ children }) {
       setAuthStatus({ loading: false, error: "" });
       return { ok: true };
     } catch (error) {
-      setAuthStatus({ loading: false, error: "Invalid credentials." });
-      return { ok: false };
+      setAuthStatus({ loading: false, error: "" });
+      return { ok: false, error: parseAuthError(error) };
     }
   }, []);
 
@@ -83,8 +84,8 @@ export function AuthProvider({ children }) {
       setAuthStatus({ loading: false, error: "" });
       return { ok: true };
     } catch (error) {
-      setAuthStatus({ loading: false, error: "Registration failed." });
-      return { ok: false };
+      setAuthStatus({ loading: false, error: "" });
+      return { ok: false, error: parseAuthError(error) };
     }
   }, []);
 
