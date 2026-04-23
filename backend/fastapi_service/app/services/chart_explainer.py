@@ -1,3 +1,4 @@
+import logging
 import re
 
 import httpx
@@ -20,6 +21,8 @@ from app.core.config import (
     OPENAI_TIMEOUT_SECONDS,
 )
 from app.schemas import ChartExplainRequest, ChartExplainResponse
+
+logger = logging.getLogger(__name__)
 
 LANGUAGE_NAMES = {
     "ru": "Russian",
@@ -362,7 +365,13 @@ def explain_chart(payload: ChartExplainRequest) -> ChartExplainResponse:
             )
 
     language = _resolve_language(payload)
-    summary = _build_data_summary(payload, language)
+
+    try:
+        summary = _build_data_summary(payload, language)
+    except Exception as exc:
+        logger.error("chart_explainer: _build_data_summary failed: %s", exc, exc_info=True)
+        summary = ""
+
     provider = _resolve_provider()
 
     if provider == "openai" and not OPENAI_API_KEY:
@@ -370,7 +379,7 @@ def explain_chart(payload: ChartExplainRequest) -> ChartExplainResponse:
             answer=_fallback_answer(payload, summary, language, warning="OPENAI_API_KEY is not set"),
             provider="local-fallback",
             model=None,
-            warning="OPENAI_API_KEY is not configured; returned local summary.",
+            warning="OPENAI_API_KEY is not configured; returning local summary.",
         )
 
     if provider == "gemini" and not GEMINI_API_KEY:
@@ -378,7 +387,7 @@ def explain_chart(payload: ChartExplainRequest) -> ChartExplainResponse:
             answer=_fallback_answer(payload, summary, language, warning="GEMINI_API_KEY is not set"),
             provider="local-fallback",
             model=None,
-            warning="GEMINI_API_KEY is not configured; returned local summary.",
+            warning="GEMINI_API_KEY is not configured; returning local summary.",
         )
 
     if provider == "groq" and not GROQ_API_KEY:
@@ -386,20 +395,24 @@ def explain_chart(payload: ChartExplainRequest) -> ChartExplainResponse:
             answer=_fallback_answer(payload, summary, language, warning="GROQ_API_KEY is not set"),
             provider="local-fallback",
             model=None,
-            warning="GROQ_API_KEY is not configured; returned local summary.",
+            warning="GROQ_API_KEY is not configured; returning local summary.",
+        )
+
+    if provider == "local-fallback":
+        return ChartExplainResponse(
+            answer=_fallback_answer(payload, summary, language),
+            provider="local-fallback",
+            model=None,
+            warning="No LLM provider configured; returning local statistical summary.",
         )
 
     if provider not in {"openai", "gemini", "groq"}:
+        logger.warning("chart_explainer: unknown provider %r", provider)
         return ChartExplainResponse(
-            answer=_fallback_answer(
-                payload,
-                summary,
-                language,
-                warning=f"Unknown CHART_EXPLAIN_PROVIDER: {provider}",
-            ),
+            answer=_fallback_answer(payload, summary, language),
             provider="local-fallback",
             model=None,
-            warning=f"Unknown CHART_EXPLAIN_PROVIDER: {provider}",
+            warning=f"Unknown CHART_EXPLAIN_PROVIDER value: {provider!r}",
         )
 
     try:
@@ -415,6 +428,7 @@ def explain_chart(payload: ChartExplainRequest) -> ChartExplainResponse:
         return ChartExplainResponse(answer=answer, provider="openai", model=OPENAI_MODEL, warning=None)
     except Exception as exc:
         engine = {"gemini": "Gemini", "groq": "Groq"}.get(provider, "OpenAI")
+        logger.error("chart_explainer: %s call failed: %s", engine, exc, exc_info=True)
         return ChartExplainResponse(
             answer=_fallback_answer(payload, summary, language, warning=str(exc)),
             provider="local-fallback",
