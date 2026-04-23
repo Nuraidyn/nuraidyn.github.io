@@ -137,13 +137,9 @@ const COMMUNITY = [
 
 /* Language list — always shown in native script */
 const LANGUAGES = [
-  { code: "en", flag: "🇺🇸", nativeName: "English"  },
-  { code: "ru", flag: "🇷🇺", nativeName: "Русский"  },
-  { code: "kz", flag: "🇰🇿", nativeName: "Қазақша"  },
-  { code: "de", flag: "🇩🇪", nativeName: "Deutsch"  },
-  { code: "fr", flag: "🇫🇷", nativeName: "Français" },
-  { code: "zh", flag: "🇨🇳", nativeName: "中文"     },
-  { code: "es", flag: "🇪🇸", nativeName: "Español"  },
+  { code: "en", flag: "🇺🇸", nativeName: "English" },
+  { code: "ru", flag: "🇷🇺", nativeName: "Русский" },
+  { code: "kz", flag: "🇰🇿", nativeName: "Қазақша" },
 ];
 
 export default function Navbar({ onOpenAuth, isAuthenticated }) {
@@ -242,7 +238,7 @@ export default function Navbar({ onOpenAuth, isAuthenticated }) {
 
           {/* Language globe */}
           <div className="nav-dropdown nav-dropdown-right">
-            <button type="button" className="nav-icon-btn" aria-label="Select language">
+            <button type="button" className="nav-icon-btn" aria-label={t("navbar.selectLanguage")}>
               <GlobeIcon />
             </button>
             <div className="nav-dropdown-panel nav-lang-panel" role="menu">

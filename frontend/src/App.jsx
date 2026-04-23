@@ -8,7 +8,6 @@ import { ThemeProvider } from "./context/ThemeContext";
 import { UIProvider } from "./context/UIContext";
 import AppLayout from "./layouts/AppLayout";
 import Home from "./pages/Home";
-import AnalysisPage from "./pages/Analysis";
 import IncomeAnalysisPage from "./pages/IncomeAnalysisPage";
 import ForecastPage from "./pages/Forecast";
 import SavedPage from "./pages/Saved";
