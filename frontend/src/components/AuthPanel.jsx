@@ -1,4 +1,5 @@
 import React, { useContext, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import AuthContext from "../context/AuthContext";
 import { useI18n } from "../context/I18nContext";
@@ -13,9 +14,12 @@ const translateAuthError = (message, t) => {
   return map[message] ? t(map[message]) : message;
 };
 
+const REDIRECT_KEY = "ewp_redirect";
+
 export default function AuthPanel({ onAuthSuccess }) {
   const { user, authStatus, login, register, logout, agreement } = useContext(AuthContext);
   const { t } = useI18n();
+  const navigate = useNavigate();
   const [mode, setMode] = useState("login");
   const [formState, setFormState] = useState({
     username: "",
@@ -46,6 +50,12 @@ export default function AuthPanel({ onAuthSuccess }) {
         setMessage(t("auth.loginFailed"));
       } else {
         onAuthSuccess?.();
+        // Redirect back to the page the user was on when their session expired
+        const redirect = sessionStorage.getItem(REDIRECT_KEY);
+        if (redirect) {
+          sessionStorage.removeItem(REDIRECT_KEY);
+          navigate(redirect, { replace: true });
+        }
       }
     } else {
       if (formState.password !== formState.confirmPassword) {

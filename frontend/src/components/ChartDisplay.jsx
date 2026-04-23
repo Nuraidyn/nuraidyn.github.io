@@ -73,17 +73,19 @@ const getCssVar = (name, fallback) => {
   return window.getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
 };
 
-/** Compact number formatter: 1 234 567 → "1.2M" */
-const fmtCompact = (value) => {
-  if (value == null || value === "") return "";
-  const n = Number(value);
-  if (!isFinite(n)) return String(value);
-  const abs = Math.abs(n);
-  if (abs >= 1e12) return (n / 1e12).toFixed(1) + "T";
-  if (abs >= 1e9)  return (n / 1e9).toFixed(1)  + "B";
-  if (abs >= 1e6)  return (n / 1e6).toFixed(1)  + "M";
-  if (abs >= 1e3)  return (n / 1e3).toFixed(1)  + "K";
-  return Number.isInteger(n) ? String(n) : n.toFixed(2);
+/* Locale code mapping: app language codes → BCP 47 tags for Intl */
+const LOCALE_MAP = { en: "en", ru: "ru", kz: "kk" };
+
+/** Compact number formatter using Intl.NumberFormat for locale-aware output */
+const makeFmtCompact = (appLang = "en") => {
+  const locale = LOCALE_MAP[appLang] || appLang;
+  const fmt = new Intl.NumberFormat(locale, { notation: "compact", maximumFractionDigits: 1 });
+  return (value) => {
+    if (value == null || value === "") return "";
+    const n = Number(value);
+    if (!isFinite(n)) return String(value);
+    return fmt.format(n);
+  };
 };
 
 /* ─────────────────────────────────────────────
@@ -207,8 +209,9 @@ const ANIMATION = {
 ═══════════════════════════════════════════ */
 export default function ChartDisplay({ datasets, chartType, viewMode, appear, indicatorLabel }) {
   const { theme } = useTheme();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const chartRef = useRef(null);
+  const fmtCompact = useMemo(() => makeFmtCompact(language), [language]);
 
   /* Local chart type — syncs from prop but toolbar can override */
   const [localType, setLocalType] = useState(chartType ?? "line");

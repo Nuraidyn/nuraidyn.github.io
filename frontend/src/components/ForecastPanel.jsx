@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Line } from "react-chartjs-2";
 import { Chart as ChartJS } from "chart.js/auto";
 
@@ -146,6 +146,11 @@ export default function ForecastPanel({
   const [history, setHistory] = useState([]);
   const [historyMeta, setHistoryMeta] = useState(null);
   const [status, setStatus] = useState({ loading: false, error: "" });
+  const abortRef = useRef(null);
+
+  useEffect(() => {
+    return () => abortRef.current?.abort();
+  }, []);
 
   const canRun = canAccess && country && indicator;
 
@@ -154,6 +159,10 @@ export default function ForecastPanel({
       setStatus({ loading: false, error: t("forecast.errorSelect") });
       return;
     }
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const { signal } = controller;
     setStatus({ loading: true, error: "" });
     try {
       const [historyData, forecastData] = await Promise.all([
@@ -162,14 +171,16 @@ export default function ForecastPanel({
           indicator,
           start_year: historyStartYear,
           end_year: historyEndYear,
-        }),
-        createForecast({ country, indicator, horizon_years: horizon }),
+        }, signal),
+        createForecast({ country, indicator, horizon_years: horizon }, signal),
       ]);
+      if (signal.aborted) return;
       setHistory(historyData.data);
       setHistoryMeta(historyData.meta);
       setForecast(forecastData);
       setStatus({ loading: false, error: "" });
     } catch (err) {
+      if (signal.aborted) return;
       setStatus({
         loading: false,
         error: t("forecast.errorGenerate"),
@@ -182,6 +193,10 @@ export default function ForecastPanel({
       setStatus({ loading: false, error: t("forecast.errorSelect") });
       return;
     }
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    const { signal } = controller;
     setStatus({ loading: true, error: "" });
     try {
       const historyData = await fetchObservationsWithMeta({
@@ -189,20 +204,22 @@ export default function ForecastPanel({
         indicator,
         start_year: historyStartYear,
         end_year: historyEndYear,
-      });
+      }, signal);
 
-      let forecastData = await fetchLatestForecast({ country, indicator });
+      let forecastData = await fetchLatestForecast({ country, indicator }, signal);
       const assumptions = String(forecastData?.assumptions || "").toLowerCase();
       // Legacy runs (without robust preprocessing) can produce extreme, misleading values.
       if (!assumptions.includes("winsorized")) {
-        forecastData = await createForecast({ country, indicator, horizon_years: horizon });
+        forecastData = await createForecast({ country, indicator, horizon_years: horizon }, signal);
       }
 
+      if (signal.aborted) return;
       setHistory(historyData.data);
       setHistoryMeta(historyData.meta);
       setForecast(forecastData);
       setStatus({ loading: false, error: "" });
     } catch (err) {
+      if (signal.aborted) return;
       setStatus({
         loading: false,
         error: t("forecast.errorLatest"),

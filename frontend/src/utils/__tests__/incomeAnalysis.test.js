@@ -97,23 +97,23 @@ describe("getExpenseTips", () => {
 });
 
 describe("getActionPlan", () => {
-  it("returns all three milestones", () => {
+  it("returns all three milestones as i18n key objects", () => {
     const plan = getActionPlan(3000, 2000, 33.3, 3);
     expect(plan).toHaveProperty("month3");
     expect(plan).toHaveProperty("month6");
     expect(plan).toHaveProperty("month12");
-    expect(typeof plan.month3).toBe("string");
-    expect(typeof plan.month6).toBe("string");
-    expect(typeof plan.month12).toBe("string");
+    expect(plan.month3).toHaveProperty("key");
+    expect(plan.month6).toHaveProperty("key");
+    expect(plan.month12).toHaveProperty("key");
   });
 
   it("returns deficit-specific month3 plan when savings are negative", () => {
     const plan = getActionPlan(1000, 1500, -50, 1);
-    expect(plan.month3).toMatch(/deficit|expenses|cut/i);
+    expect(plan.month3.key).toMatch(/deficit/i);
   });
 
   it("returns certification goal for low experience", () => {
     const plan = getActionPlan(2000, 1500, 25, 0);
-    expect(plan.month12).toMatch(/certif|course|career/i);
+    expect(plan.month12.key).toMatch(/junior/i);
   });
 });

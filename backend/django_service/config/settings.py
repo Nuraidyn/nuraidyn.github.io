@@ -1,10 +1,25 @@
 import os
+import warnings
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "dev-secret-key")
 DEBUG = os.getenv("DJANGO_DEBUG", "0") == "1"
+
+_INSECURE_DEFAULTS = {"dev-secret-key", "secret", "changeme", ""}
+_APP_ENV = os.getenv("APP_ENV", "development")
+if _APP_ENV == "production" and SECRET_KEY in _INSECURE_DEFAULTS:
+    raise RuntimeError(
+        "SECURITY: DJANGO_SECRET_KEY is set to an insecure default value. "
+        "Set a strong random secret in your .env before running in production."
+    )
+if SECRET_KEY in _INSECURE_DEFAULTS:
+    warnings.warn(
+        "DJANGO_SECRET_KEY is using the insecure default 'dev-secret-key'. "
+        "Set a real secret key via the DJANGO_SECRET_KEY environment variable.",
+        stacklevel=1,
+    )
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "*").split(",")
 
 INSTALLED_APPS = [

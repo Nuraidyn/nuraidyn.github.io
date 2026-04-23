@@ -1,10 +1,12 @@
 import asyncio
 import time
+from datetime import datetime, timezone
 from threading import Lock
 
 import httpx
 
 WORLD_BANK_BASE = "https://api.worldbank.org/v2/country"
+WB_START_YEAR = 1990
 
 # Simple in-memory TTL cache shared between sync and async callers.
 _CACHE: dict[tuple, tuple[list, float]] = {}
@@ -55,7 +57,8 @@ def fetch_indicator_series(country: str, indicator: str, per_page: int = 200) ->
     if cached is not None:
         return cached
 
-    params = {"format": "json", "per_page": per_page, "date": "1990:2025"}
+    current_year = datetime.now(timezone.utc).year
+    params = {"format": "json", "per_page": per_page, "date": f"{WB_START_YEAR}:{current_year}"}
     url = build_url(country, indicator)
     retries = 3
     delay_seconds = 0.4
@@ -81,7 +84,8 @@ async def async_fetch_indicator_series(country: str, indicator: str, per_page: i
     if cached is not None:
         return cached
 
-    params = {"format": "json", "per_page": per_page, "date": "1990:2025"}
+    current_year = datetime.now(timezone.utc).year
+    params = {"format": "json", "per_page": per_page, "date": f"{WB_START_YEAR}:{current_year}"}
     url = build_url(country, indicator)
     retries = 3
     delay_seconds = 0.4

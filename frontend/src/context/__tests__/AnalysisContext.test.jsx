@@ -14,8 +14,13 @@ vi.mock("../../api/analyticsApi", () => ({
 
 import { listCountries, listIndicators } from "../../api/analyticsApi";
 import { AnalysisProvider, useAnalysis } from "../AnalysisContext";
+import { I18nProvider } from "../I18nContext";
 
-const wrapper = ({ children }) => <AnalysisProvider>{children}</AnalysisProvider>;
+const wrapper = ({ children }) => (
+  <I18nProvider>
+    <AnalysisProvider>{children}</AnalysisProvider>
+  </I18nProvider>
+);
 
 describe("AnalysisContext", () => {
   it("loads catalog and clamps years within safe bounds", async () => {
