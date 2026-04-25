@@ -126,3 +126,36 @@ def ingest_indicator(db: Session, country_code: str, indicator_code: str):
         run.finished_at = func.now()
         db.commit()
         raise
+
+
+def persist_observations(db: Session, country_code: str, indicator_code: str, series: list) -> int:
+    """Write-through cache: persist an already-fetched series without creating an IngestionRun."""
+    if not series:
+        return 0
+    try:
+        country = get_or_create_country(db, country_code)
+        indicator = get_or_create_indicator(db, indicator_code)
+        existing_years = _load_existing_years(db, country.id, indicator.id)
+        new_obs = [
+            Observation(
+                country_id=country.id,
+                indicator_id=indicator.id,
+                year=entry["year"],
+                value=entry["value"],
+                source=WORLD_BANK_SOURCE,
+            )
+            for entry in series
+            if entry["year"] not in existing_years
+        ]
+        if new_obs:
+            db.add_all(new_obs)
+            db.commit()
+            logger.debug(
+                "persist_observations country=%s indicator=%s inserted=%d",
+                country_code, indicator_code, len(new_obs),
+            )
+        return len(new_obs)
+    except Exception as exc:
+        db.rollback()
+        logger.warning("persist_observations failed %s/%s: %s", country_code, indicator_code, exc)
+        return 0

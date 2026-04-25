@@ -1,4 +1,6 @@
+import asyncio
 import logging
+from concurrent.futures import ThreadPoolExecutor
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -98,6 +100,65 @@ async def setup_redis():
     except Exception as exc:
         logger.warning("Redis unavailable (%s) — rate limiter fallback active.", exc)
         app.state.redis = None
+
+
+@app.on_event("startup")
+async def seed_baseline_data():
+    """Pre-populate DB with baseline country×indicator data in a background thread pool."""
+    asyncio.create_task(_run_baseline_seed())
+
+
+async def _run_baseline_seed():
+    from app.data.baseline import BASELINE_COUNTRIES, BASELINE_INDICATORS
+    loop = asyncio.get_event_loop()
+    # Semaphore limits concurrent World Bank API calls to avoid rate-limiting
+    sem = asyncio.Semaphore(4)
+
+    async def _seed_one(country: str, indicator: str):
+        async with sem:
+            await loop.run_in_executor(_SEED_EXECUTOR, _seed_sync, country, indicator)
+
+    tasks = [
+        _seed_one(country, indicator)
+        for country in BASELINE_COUNTRIES
+        for indicator in BASELINE_INDICATORS
+    ]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    errors = [r for r in results if isinstance(r, Exception)]
+    if errors:
+        logger.warning("Baseline seed finished with %d error(s): first=%s", len(errors), errors[0])
+    else:
+        logger.info("Baseline seed complete (%d combos)", len(tasks))
+
+
+_SEED_EXECUTOR = ThreadPoolExecutor(max_workers=4, thread_name_prefix="baseline-seed")
+
+
+def _seed_sync(country: str, indicator: str) -> None:
+    from app.db import SessionLocal
+    from app.models import Country, Indicator, Observation
+    from app.services.ingestion import ingest_indicator
+
+    db = SessionLocal()
+    try:
+        country_row = db.query(Country).filter(Country.code == country).first()
+        indicator_row = db.query(Indicator).filter(Indicator.code == indicator).first()
+        if country_row and indicator_row:
+            count = (
+                db.query(Observation)
+                .filter(
+                    Observation.country_id == country_row.id,
+                    Observation.indicator_id == indicator_row.id,
+                )
+                .count()
+            )
+            if count > 0:
+                return  # Already seeded — skip
+        ingest_indicator(db, country, indicator)
+    except Exception as exc:
+        logger.warning("baseline seed %s/%s: %s", country, indicator, exc)
+    finally:
+        db.close()
 
 
 @app.on_event("shutdown")
