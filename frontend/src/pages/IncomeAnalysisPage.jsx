@@ -8,6 +8,7 @@
 import React, { useState } from "react";
 
 import { useI18n } from "../context/I18nContext";
+import { useAnalysis } from "../context/AnalysisContext";
 import IncomeForm from "../components/income-analysis/IncomeForm";
 import ResultSummary from "../components/income-analysis/ResultSummary";
 import AIInsights from "../components/income-analysis/AIInsights";
@@ -21,6 +22,7 @@ import {
 
 export default function IncomeAnalysisPage() {
   const { t } = useI18n();
+  const { countries } = useAnalysis();
   const [results, setResults] = useState(null);
   const [formData, setFormData] = useState(null);
 
@@ -93,7 +95,7 @@ export default function IncomeAnalysisPage() {
       {/* ══ 2. FORM + RESULTS ═══════════��════════════════════════ */}
       <section>
         <div className="grid md:grid-cols-2 gap-6 items-start">
-          <IncomeForm onSubmit={handleSubmit} />
+          <IncomeForm onSubmit={handleSubmit} countries={countries} />
 
           {results ? (
             <ResultSummary data={results} />

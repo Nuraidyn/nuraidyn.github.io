@@ -14,6 +14,18 @@ vi.mock("../../context/ThemeContext", () => ({
   useTheme: () => ({ theme: "light", setTheme: vi.fn() }),
 }));
 
+// Mock AnalysisContext — IncomeAnalysisPage now reads countries from it
+vi.mock("../../context/AnalysisContext", () => ({
+  useAnalysis: () => ({
+    countries: [
+      { code: "DE", name: "Germany" },
+      { code: "CA", name: "Canada" },
+      { code: "US", name: "United States" },
+      { code: "KZ", name: "Kazakhstan" },
+    ],
+  }),
+}));
+
 // Mock fetchIncomeInsights so the AI Insights button works in tests
 vi.mock("../../api/analyticsApi", () => ({
   fetchIncomeInsights: vi.fn().mockResolvedValue({
