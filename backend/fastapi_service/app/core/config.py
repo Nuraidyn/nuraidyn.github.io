@@ -41,10 +41,15 @@ AUTHZ_CACHE_MAXSIZE = int(os.getenv("AUTHZ_CACHE_MAXSIZE", "10000"))
 # If strict, protected endpoints fail closed when Django introspection is unavailable.
 AUTHZ_INTROSPECT_STRICT = os.getenv("AUTHZ_INTROSPECT_STRICT", "1") == "1"
 
-# Rate limiting (simple in-memory; dev-friendly)
+# Rate limiting (Redis-based token bucket)
 RATE_LIMIT_ENABLED = os.getenv("RATE_LIMIT_ENABLED", "1") == "1"
 RATE_LIMIT_RPS = float(os.getenv("RATE_LIMIT_RPS", "5"))
 RATE_LIMIT_BURST = int(os.getenv("RATE_LIMIT_BURST", "20"))
+REDIS_URL = os.getenv("REDIS_URL", "")  # empty → Redis disabled, permissive fallback
+# fail-open=1: allow requests when Redis is down (default for dev)
+# fail-open=0: return 503 when Redis is down (recommended for prod)
+_default_fail_open = "0" if APP_ENV == "production" else "1"
+RATE_LIMIT_REDIS_FAIL_OPEN = os.getenv("RATE_LIMIT_REDIS_FAIL_OPEN", _default_fail_open) == "1"
 
 # AI chart explanation agent
 CHART_EXPLAIN_PROVIDER = os.getenv("CHART_EXPLAIN_PROVIDER", "openai").strip().lower()

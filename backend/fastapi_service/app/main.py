@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -10,13 +12,19 @@ from app.api.v1.inequality import router as inequality_router
 from app.api.v1.ingestion import router as ingestion_router
 from app.api.v1.ingestion_runs import router as ingestion_runs_router
 from app.api.v1.observations import router as observations_router
-from app.core.config import APP_ENV, CORS_ALLOW_ORIGINS, JWT_SECRET, RATE_LIMIT_BURST, RATE_LIMIT_ENABLED, RATE_LIMIT_RPS
+from app.core.config import (
+    APP_ENV, CORS_ALLOW_ORIGINS, JWT_SECRET,
+    RATE_LIMIT_BURST, RATE_LIMIT_ENABLED, RATE_LIMIT_RPS,
+    RATE_LIMIT_REDIS_FAIL_OPEN, REDIS_URL,
+)
 from app.db import Base, engine
 from app.middleware.rate_limit import RateLimitMiddleware
 from app.migrations import ensure_indexes
 import app.models_analytics  # noqa: F401
 import app.models_forecast  # noqa: F401
 import app.models_ingestion  # noqa: F401
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Economic Analytics Service",
@@ -29,6 +37,7 @@ app.add_middleware(
     enabled=RATE_LIMIT_ENABLED,
     rps=RATE_LIMIT_RPS,
     burst=RATE_LIMIT_BURST,
+    fail_open=RATE_LIMIT_REDIS_FAIL_OPEN,
 )
 
 app.add_middleware(
@@ -64,3 +73,33 @@ def check_secret_key():
             "SECURITY: JWT_SECRET / DJANGO_SECRET_KEY is set to an insecure default value. "
             "Set a strong random secret in your .env before running in production."
         )
+
+
+@app.on_event("startup")
+async def setup_redis():
+    """Connect to Redis for the rate limiter; store client in app.state.redis."""
+    if not REDIS_URL:
+        logger.info("REDIS_URL not set — rate limiter running in permissive mode.")
+        app.state.redis = None
+        return
+    try:
+        import redis.asyncio as aioredis
+        pool = aioredis.ConnectionPool.from_url(
+            REDIS_URL,
+            max_connections=20,
+            decode_responses=False,
+        )
+        client = aioredis.Redis(connection_pool=pool)
+        await client.ping()
+        app.state.redis = client
+        logger.info("Redis connected: %s", REDIS_URL.split("@")[-1])
+    except Exception as exc:
+        logger.warning("Redis unavailable (%s) — rate limiter fallback active.", exc)
+        app.state.redis = None
+
+
+@app.on_event("shutdown")
+async def close_redis():
+    client = getattr(app.state, "redis", None)
+    if client is not None:
+        await client.aclose()
