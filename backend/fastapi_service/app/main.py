@@ -13,6 +13,7 @@ from app.api.v1.observations import router as observations_router
 from app.core.config import APP_ENV, CORS_ALLOW_ORIGINS, JWT_SECRET, RATE_LIMIT_BURST, RATE_LIMIT_ENABLED, RATE_LIMIT_RPS
 from app.db import Base, engine
 from app.middleware.rate_limit import RateLimitMiddleware
+from app.migrations import ensure_indexes
 import app.models_analytics  # noqa: F401
 import app.models_forecast  # noqa: F401
 import app.models_ingestion  # noqa: F401
@@ -52,6 +53,7 @@ app.include_router(news_router, prefix="/api/v1")
 @app.on_event("startup")
 def create_tables():
     Base.metadata.create_all(bind=engine)
+    ensure_indexes(engine)
 
 
 @app.on_event("startup")
