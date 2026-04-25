@@ -78,7 +78,11 @@ export default function AIInsights({ formData }) {
       const data = await fetchIncomeInsights(payload, controller.signal);
       setInsights(data);
     } catch (err) {
-      if (err.name !== "CanceledError" && err.name !== "AbortError") {
+      if (err.name === "CanceledError" || err.name === "AbortError") return;
+      const status = err.response?.status;
+      if (status === 401 || status === 403) {
+        setError(t("incomeAnalysis.errorAuth"));
+      } else {
         setError(t("incomeAnalysis.errorFetch"));
       }
     } finally {

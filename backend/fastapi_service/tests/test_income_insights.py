@@ -282,12 +282,13 @@ class TestEndpointContract(unittest.TestCase):
         r = self.client.post("/api/v1/income/insights", json=bad)
         self.assertEqual(r.status_code, 422)
 
-    def test_unauthenticated_returns_401(self):
+    def test_unauthenticated_returns_200(self):
+        # Income insights is a public endpoint — no auth required.
         from app.main import app
         app.dependency_overrides.clear()
         client = TestClient(app)
         r = client.post("/api/v1/income/insights", json=_VALID_PAYLOAD)
-        self.assertIn(r.status_code, (401, 403))
+        self.assertEqual(r.status_code, 200)
 
     def test_llm_failure_still_returns_200_with_fallback(self):
         with patch("app.services.income_insights._call_openai",
