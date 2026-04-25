@@ -37,6 +37,7 @@ CORS_ALLOW_ORIGINS = [
 AUTHZ_INTROSPECT_PATH = os.getenv("AUTHZ_INTROSPECT_PATH", "/api/auth/introspect")
 AUTHZ_INTROSPECT_TIMEOUT_SECONDS = float(os.getenv("AUTHZ_INTROSPECT_TIMEOUT_SECONDS", "3.5"))
 AUTHZ_CACHE_TTL_SECONDS = int(os.getenv("AUTHZ_CACHE_TTL_SECONDS", "60"))
+AUTHZ_CACHE_MAXSIZE = int(os.getenv("AUTHZ_CACHE_MAXSIZE", "10000"))
 # If strict, protected endpoints fail closed when Django introspection is unavailable.
 AUTHZ_INTROSPECT_STRICT = os.getenv("AUTHZ_INTROSPECT_STRICT", "1") == "1"
 
