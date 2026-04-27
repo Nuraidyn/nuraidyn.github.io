@@ -156,3 +156,4 @@ frontend/.npm-cache/
 
 # Claude Code
 CLAUDE.md
+.claude/settings.local.json
